@@ -1,0 +1,96 @@
+import pandas as pd #Mengimport library panda
+import numpy as np #Mengimport library numpy dan merubah ke np
+import random #Menginput library random
+
+#Membuat variable train untuk menampung data yang telah diberikan
+train = np.genfromtxt("D:\Ekstensi\MCL3\DataTugas3ML2019.txt", delimiter='\t',dtype=int)
+#Membuat variable train untuk menampung data yang telah diberikan
+
+#Membuat 10 array kosong yang berfungsi untuk menampung 10 nilai reward di setiap arraynya
+train1 = np.zeros((15,4))
+#Membuat 10 array kosong yang berfungsi untuk menampung 10 nilai reward di setiap arraynya
+
+#Membaca array train lalu menyimpannya didalam array train1
+z = 0
+for x in range(15):
+    for y in range(15):
+        nilai = train[x,y]
+        f = np.array([z,nilai])
+        train1[x,y] = f
+        z += 1
+#Membaca array train lalu menyimpannya didalam array train1
+
+#Membuat array 4 dengan panjang 100
+Q = np.zeros((4,135))
+#Membuat array 4 dengan panjang 100
+
+#Fungsi untuk mencari jalur yang akan dilewati selanjutnya
+def findNext(random,x,y):
+    if random == 0:
+        x -= 1
+        if x<0:
+            x += 1
+    elif random == 1:
+        y += 1
+        if y>9:
+            y -= 1
+    elif random == 2:
+        x += 1
+        if x>9:
+            x -= 1
+    elif random == 3:
+        y -= 1
+        if y<0:
+            y += 1
+    return x,y
+#Fungsi untuk mencari jalur yang akan dilewati selanjutnya
+
+#Menginisialisasikan Alpha dan gamma lalu mengassign nilai 0.1 untuk alpha 0.9 untuk gamma
+al = 0.1
+ga = 0.9
+#Menginisialisasikan Alpha dan gamma lalu mengassign nilai 0.1 untuk alpha 0.9 untuk gamma
+
+
+for j in range(500): #Melakukan Perulangan sebanyak 500 kali
+    x = 14 #mendeklarasikan nilai x dan mengassign angka 9
+    y = 0 #mendeklarasikan nilai y dan mengassign angka 0
+    s = 90
+
+    while (x != 0 & y != 14):
+        # Menginisasi nilai aksi scara random dengan interval nilai 0-3, dimana 0 = North, 1 = East, 2 = South, 3 = West
+        # lalu memanggil fungsi findNext untuk mencari nilai koordinat
+        nextState = np.random.choice(4, 1)
+        x, y = findNext(nextState, x, y)
+        #mengupdate nilai max Q dengan menggunakan perhitungan rumus Q
+        maks = np.amax(Q, axis=0)
+        Q[nextState, s] = (Q[nextState, s] + (al * (train1[x, y][1] + (ga * maks[int(train1[x, y][0])]) - Q[nextState, s])))
+        # next state
+        s = int(train1[x, y][0])
+
+
+state = 90 #menginisialisasi state dan meng assign nilai 90
+x = 9 #menginisialisasi x dan meng assign nilai 9
+y = 0 #menginisialisasi y dan meng assign nilai 0
+reward = 0 #menginisialisasi reward dan meng assign nilai 0
+step = []
+
+while (state != 14):
+    #mengambil nilai max
+    max = np.amax(Q, axis=0)
+    pola, state = np.where(Q == max[state])
+    if (pola.size > 1):
+        nextState = pola[0]
+    else:
+        nextState = pola
+
+    #mengambil nilai baru x y
+    x, y = findNext(nextState, x, y)
+    # next state
+    state = int(train1[x, y][0])
+    # Masukan state kedalam array step
+    step.append(state)
+    #menghitung nilai reward yang didapatkan
+    reward += train1[x, y][1]
+
+print("Total Reward : ",reward) #mengoutputkan total reward
+print("Jalur Ke Tujuan : ",step) #mengoutputkan jalur yang dilalui untuk menuju tujuan
